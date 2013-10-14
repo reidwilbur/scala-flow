@@ -18,31 +18,45 @@ trait Action {
   def execute(context: FlowContext): ExitPort
 }
 
-class FlowNode(
+trait FlowNode {
+  def name: String
+
+  def execute(context: FlowContext): (ExitPort, Option[String])
+
+  override def toString: String = getClass().getSimpleName()+":"+name
+}
+
+class Node(
   val name: String, 
   val action: Action, 
-  val exitPorts: Map[ExitPort, String]) extends Logging {
+  val exitPorts: Map[ExitPort, String]) extends FlowNode with Logging {
 
-  def execute(context: FlowContext): (ExitPort, Option[String]) = {
+  override def execute(context: FlowContext): (ExitPort, Option[String]) = {
     logger.info("Executing node "+name+" with context "+context.name)
     val exitPort = action.execute(context)
     val nextNode = exitPorts(exitPort)
     (exitPort, Some(nextNode))
   }
 
-  override def toString: String = {
-    name
-  }
 }
 
-class EndFlowNode(
-  name: String, 
-  action: Action) extends FlowNode(name, action, Map.empty) {
+class EndNode(
+  val name: String, 
+  val action: Action) extends FlowNode with Logging {
 
   override def execute(context: FlowContext): (ExitPort, Option[String]) = {
     logger.info("Executing node "+name+" with context "+context.name)
     val exitPort = action.execute(context)
     (exitPort, None)
+  }
+}
+
+class SubFlowNode(
+  val name: String, 
+  val nodes: List[FlowNode]) extends FlowNode with Logging {
+
+  override def execute(context: FlowContext): (ExitPort, Option[String]) = {
+    (new ExitPort{ val description = "Not Implemented" }, None)
   }
 }
 

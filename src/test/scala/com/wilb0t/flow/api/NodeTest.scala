@@ -33,15 +33,15 @@ class FlowTest extends FunSuite with Logging {
 
     val flow = 
       new Flow("TestFlow", List[FlowNode](
-            new FlowNode("HeadNode", new PassAction(), Map[ExitPort, String](
+            new Node("HeadNode", new PassAction(), Map[ExitPort, String](
               ( PassExit() -> "MidNode" ),
               ( FailExit() -> "EndNode" )
             )),
-            new FlowNode("MidNode", new FailAction(), Map[ExitPort, String](
+            new Node("MidNode", new FailAction(), Map[ExitPort, String](
               ( PassExit() -> "EndNode" ),
               ( FailExit() -> "EndNode" )
             )),
-            new EndFlowNode("EndNode", new PassAction())
+            new EndNode("EndNode", new PassAction())
             )
           )
 
