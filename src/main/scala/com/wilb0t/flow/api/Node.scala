@@ -23,6 +23,7 @@ trait Action {
 
 abstract class Node {
   def name: String
+  override def toString: String = this.getClass().getSimpleName()+":"+name
 }
 
 case class ActionNode(
@@ -63,7 +64,12 @@ class Flow(val name: String, val nodes: List[Node]) extends Logging {
 
 class FlowRunner(val flow: Flow) extends Logging {
 
-  def execute(context: FlowContext): List[(Node, Map[FlowContext, ExitPort])] = {
+  def execute(
+      context: FlowContext, 
+      subContexts: List[FlowContext]
+    )
+    : List[(Node, Map[FlowContext, ExitPort])] = {
+
     def execNode(
         node: Option[Node], 
         path: List[(Node, Map[FlowContext, ExitPort])]
@@ -99,7 +105,7 @@ class FlowRunner(val flow: Flow) extends Logging {
           val subFlow = new Flow(name, nodes)
           val subFlowRunner = new FlowRunner(subFlow)
 
-          val path = subFlowRunner.execute(context)
+          val subFlowPath = subFlowRunner.execute(context, subContexts)
 
           val exitPort = (path.last._2)(context)
           logger.info("Got exit port: "+exitPort)
@@ -110,20 +116,30 @@ class FlowRunner(val flow: Flow) extends Logging {
               case Some(name) => flow.nodeMap.get(name)
               case _ => None
             }
-          //TODO: need to add in path from subflow
-          execNode(nextNode, (n, Map(context -> exitPort)) :: path)
+          execNode(nextNode, (n, Map(context -> exitPort)) :: subFlowPath.reverse ::: path)
 
         case Some(n @ ParSubFlowNode(name, nodes, nextNodeName)) =>
           logger.info("Executing: "+n)
-          val subFlow = new Flow(name, nodes)
+          val subFlow: Flow = new Flow(name, nodes)
           val subFlowRunner = new FlowRunner(subFlow)
 
-          //TODO: need to execute per sub context here, not just once
-          val path = subFlowRunner.execute(context)
+          val subFlowPaths = 
+            subContexts.flatMap{ subFlowRunner.execute(_, subContexts) }
+         
+          val executedNodes: Iterable[Node] = subFlowPaths.foldLeft(Map[Node, Boolean]())( (m: Map[Node, Boolean], e: (Node, Map[FlowContext, ExitPort])) => m + (e._1 -> true)).keys
+
+          val coalescedPaths: Iterable[(Node, Map[FlowContext, ExitPort])] = 
+            executedNodes.map( 
+              n => (n, 
+                subFlowPaths
+                  .filter( _._1 == n)
+                  .foldLeft(Map[FlowContext, ExitPort]())( 
+                    (m: Map[FlowContext, ExitPort], e: (Node, Map[FlowContext, ExitPort])) => m ++ e._2 )
+                )
+            )
 
           val nextNode = flow.nodeMap.get(nextNodeName)
-          //TODO: need to add in path from subflow
-          execNode(nextNode, (n, Map(context -> ParSubFlowExit())) :: path)
+          execNode(nextNode, (n, Map(context -> ParSubFlowExit())) :: (coalescedPaths ++: path))
       }
 
     }

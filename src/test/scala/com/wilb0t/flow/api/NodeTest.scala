@@ -45,8 +45,8 @@ class FlowTest extends FunSuite with Logging {
                ( FailExit() -> "EndNode" )
             )),
             ActionNode("MidNode", new FailAction(), Map[ExitPort, String](
-             ( PassExit() -> "EndNode" ),
-             ( FailExit() -> "EndNode" )
+             ( PassExit() -> "SubFlow" ),
+             ( FailExit() -> "SubFlow" )
             )),
             ParSubFlowNode("SubFlow", List[Node](
                 ActionNode("SubFlowHead", new PassAction(), Map[ExitPort, String](
@@ -62,7 +62,7 @@ class FlowTest extends FunSuite with Logging {
           )
 
     val flowRunner = new FlowRunner(flow)
-    val path = flowRunner.execute(FlowContext("Main"))
+    val path = flowRunner.execute(FlowContext("Main"), List(FlowContext("Ctx1"), FlowContext("Ctx2")))
 
     logger.info("Got path: "+path)
 
