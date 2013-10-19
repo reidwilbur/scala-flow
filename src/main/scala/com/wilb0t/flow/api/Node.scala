@@ -1,7 +1,5 @@
 package com.wilb0t.flow.api
 
-import com.weiglewilczek.slf4s.Logging
-
 abstract class ExitPort {
   def description: String
   override def toString: String = {
@@ -31,18 +29,18 @@ abstract class Node {
 case class ActionNode(
   val name: String, 
   val action: Action, 
-  val exitPorts: Map[ExitPort, String]) extends Node with Logging {
+  val exitPorts: Map[ExitPort, String]) extends Node {
 }
 
 case class EndNode(
   val name: String, 
-  val action: Action) extends Node with Logging {
+  val action: Action) extends Node {
 }
 
 case class SubFlowNode(
   val name: String, 
   val nodes: List[Node],
-  val exitPorts: Map[ExitPort, String]) extends Node with Logging {
+  val exitPorts: Map[ExitPort, String]) extends Node {
 
   val nodeMap: Map[String, Node] = 
     nodes.foldLeft(Map[String, Node]())( (m, n) => m + (n.name -> n))
@@ -51,91 +49,10 @@ case class SubFlowNode(
 case class ParSubFlowNode(
   val name: String, 
   val nodes: List[Node],
-  val nextNode: String) extends Node with Logging {
+  val nextNode: String) extends Node {
 
   val nodeMap: Map[String, Node] = 
     nodes.foldLeft(Map[String, Node]())( (m, n) => m + (n.name -> n))
 
 }
 
-class Flow(val name: String, val nodes: List[Node]) extends Logging {
-
-  val nodeMap: Map[String, Node] = 
-    nodes.foldLeft(Map[String, Node]())( (m, n) => m + (n.name -> n))
-}
-
-class FlowRunner(val flow: Flow) extends Logging {
-
-  def execute(
-      context: FlowContext, 
-      subContexts: List[FlowContext]
-    )
-    : List[NodeResult] = {
-
-    def execNode(
-        node: Option[Node], 
-        path: List[NodeResult]
-      )
-      : List[NodeResult] = {
-
-      node match {
-        case None => 
-          logger.info("Flow finished")
-          path.reverse
-
-        case Some(n @ EndNode(name, action)) =>
-          logger.info("Executing: "+n)
-          val exitPort = action.execute(context)
-          logger.info("Got exit port: "+exitPort)
-          (NodeResult(n, context, exitPort) :: path).reverse
-
-        case Some(n @ ActionNode(name, action, exitPorts)) =>
-          logger.info("Executing: "+n)
-          val exitPort = action.execute(context)
-          val nextNodeName = exitPorts.get(exitPort)
-          logger.info("Got exit port: "+exitPort)
-          logger.info("Next node: "+nextNodeName)
-          val nextNode = 
-            nextNodeName match {
-              case Some(name) => flow.nodeMap.get(name)
-              case _ => None
-            }
-          execNode(nextNode, NodeResult(n, context, exitPort) :: path)
-
-        case Some(n @ SubFlowNode(name, nodes, exitPorts)) =>
-          logger.info("Executing: "+n)
-          val subFlow = new Flow(name, nodes)
-          val subFlowRunner = new FlowRunner(subFlow)
-
-          val subFlowResults = subFlowRunner.execute(context, subContexts)
-
-          val exitPort = path.last.exitPort
-          logger.info("Got exit port: "+exitPort)
-          val nextNodeName = exitPorts.get(exitPort)
-          logger.info("Next node: "+nextNodeName)
-          val nextNode = 
-            nextNodeName match {
-              case Some(name) => flow.nodeMap.get(name)
-              case _ => None
-            }
-          execNode(nextNode, NodeResult(n, context, exitPort) :: subFlowResults.reverse ::: path)
-
-        case Some(n @ ParSubFlowNode(name, nodes, nextNodeName)) =>
-          logger.info("Executing: "+n)
-          val subFlow: Flow = new Flow(name, nodes)
-          val subFlowRunner = new FlowRunner(subFlow)
-
-          val subFlowResults = 
-            subContexts.flatMap{ subFlowRunner.execute(_, subContexts) }
-         
-          val nextNode = flow.nodeMap.get(nextNodeName)
-          execNode(nextNode, NodeResult(n, context, ParSubFlowExit()) :: subFlowResults.reverse ::: path)
-      }
-
-    }
-    
-    logger.info("Starting flow: "+flow.name)
-    execNode(flow.nodes.headOption, Nil)
-  }
-
-}

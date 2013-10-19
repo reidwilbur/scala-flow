@@ -1,4 +1,6 @@
-package com.wilb0t.flow.api
+package com.wilb0t.flow.impl
+
+import com.wilb0t.flow.api._
 
 import org.scalatest.FunSuite
 import com.weiglewilczek.slf4s.Logging
@@ -27,7 +29,7 @@ class FailAction extends Action with Logging {
   }
 }
 
-class FlowTest extends FunSuite with Logging {
+class SerialFlowTest extends FunSuite with Logging {
 
   test("simple flow") {
 
@@ -61,7 +63,7 @@ class FlowTest extends FunSuite with Logging {
             )
           )
 
-    val flowRunner = new FlowRunner(flow)
+    val flowRunner = new SerialFlowRunner(flow)
     val results = flowRunner.execute(FlowContext("Main"), List(FlowContext("Ctx1"), FlowContext("Ctx2")))
 
     logger.info("Got Results: "+results)
