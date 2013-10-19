@@ -71,10 +71,8 @@ class ParallelFlowRunner(val flow: Flow) extends FlowRunner with Logging {
               yield future { subFlowRunner.execute(context, subContexts) }
 
           import scala.concurrent.duration.Duration
-          val futureResults = for(f <- futures; r <- Await.result(f, Duration.Inf)) yield r
+          val subFlowResults = for(f <- futures; r <- Await.result(f, Duration.Inf)) yield r
           
-          val subFlowResults = futureResults
-
           val nextNode = flow.nodeMap.get(nextNodeName)
           execNode(nextNode, NodeResult(n, context, ParSubFlowExit()) :: subFlowResults.reverse ::: path)
       }
