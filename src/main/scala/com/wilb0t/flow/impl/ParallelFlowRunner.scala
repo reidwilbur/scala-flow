@@ -25,13 +25,13 @@ class ParallelFlowRunner(val flow: Flow) extends FlowRunner with Logging {
 
         case Some(n @ EndNode(name, action)) =>
           logger.info("Executing: "+n)
-          val exitPort = action.execute(context)
+          val exitPort = action(context)
           logger.info("Got exit port: "+exitPort)
           (NodeResult(n, context, exitPort) :: path).reverse
 
         case Some(n @ ActionNode(name, action, exitPorts)) =>
           logger.info("Executing: "+n)
-          val exitPort = action.execute(context)
+          val exitPort = action(context)
           val nextNodeName = exitPorts.get(exitPort)
           logger.info("Got exit port: "+exitPort)
           logger.info("Next node: "+nextNodeName)

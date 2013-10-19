@@ -16,7 +16,7 @@ class ParallelFlowTest extends FunSuite with Logging {
   }
   
   class PassAction extends Action with Logging {
-    override def execute(context: FlowContext): ExitPort = {
+    override def apply(context: FlowContext): ExitPort = {
       logger.info("Emitting PassExit")
   
       PassExit()
@@ -24,42 +24,45 @@ class ParallelFlowTest extends FunSuite with Logging {
   }
   
   class FailAction extends Action with Logging {
-    override def execute(context: FlowContext): ExitPort = {
+    override def apply(context: FlowContext): ExitPort = {
       logger.info("Emitting FailExit")
   
       FailExit()
     }
   }
 
+  val passAction = new PassAction()
+  val failAction = new FailAction()
+
   test("simple flow") {
 
     val flow = 
       new Flow("TestFlow", List[Node](
-            ActionNode("HeadNode", new PassAction(), Map[ExitPort, String](
+            ActionNode("HeadNode", passAction, Map[ExitPort, String](
              ( PassExit() -> "CompFlow" ),
              ( FailExit() -> "EndNode" )
             )),
             SubFlowNode("CompFlow", List[Node](
-                EndNode("CompFlowEnd", new PassAction())
+                EndNode("CompFlowEnd", passAction)
               ), 
               Map[ExitPort, String](
                ( PassExit() -> "MidNode" ),
                ( FailExit() -> "EndNode" )
             )),
-            ActionNode("MidNode", new FailAction(), Map[ExitPort, String](
+            ActionNode("MidNode", failAction, Map[ExitPort, String](
              ( PassExit() -> "SubFlow" ),
              ( FailExit() -> "SubFlow" )
             )),
             ParSubFlowNode("SubFlow", List[Node](
-                ActionNode("SubFlowHead", new PassAction(), Map[ExitPort, String](
+                ActionNode("SubFlowHead", passAction, Map[ExitPort, String](
                  ( PassExit() -> "SubFlowEndNode" ),
                  ( FailExit() -> "SubFlowEndNode" )
                 )),
-                EndNode("SubFlowEndNode", new FailAction())
+                EndNode("SubFlowEndNode", failAction)
                 ),
                 "EndNode"
             ),
-            EndNode("EndNode", new PassAction())
+            EndNode("EndNode", passAction)
             )
           )
 

@@ -17,10 +17,6 @@ case class FlowContext(val name: String) {
 
 case class NodeResult(val node: Node, val context: FlowContext, val exitPort: ExitPort)
 
-trait Action {
-  def execute(context: FlowContext): ExitPort
-}
-
 abstract class Node {
   def name: String
   override def toString: String = this.getClass().getSimpleName()+":"+name
