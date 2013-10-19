@@ -5,7 +5,7 @@ import com.wilb0t.flow.api._
 import org.scalatest.FunSuite
 import com.weiglewilczek.slf4s.Logging
 
-class SerialFlowTest extends FunSuite with Logging {
+class ParallelFlowTest extends FunSuite with Logging {
 
   case class PassExit() extends ExitPort {
     val description = "Node Passed"
@@ -63,7 +63,7 @@ class SerialFlowTest extends FunSuite with Logging {
             )
           )
 
-    val flowRunner = new SerialFlowRunner(flow)
+    val flowRunner = new ParallelFlowRunner(flow)
     val results = flowRunner.execute(FlowContext("Main"), List(FlowContext("Ctx1"), FlowContext("Ctx2")))
 
     logger.info("Got Results: "+results)
@@ -137,4 +137,5 @@ class SerialFlowTest extends FunSuite with Logging {
 
   }
 }
+
 
