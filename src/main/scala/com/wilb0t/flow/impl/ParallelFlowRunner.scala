@@ -29,10 +29,10 @@ class ParallelFlowRunner(val flow: Flow) extends FlowRunner with Logging {
           logger.info("Got exit port: "+exitPort)
           (NodeResult(n, context, exitPort) :: path).reverse
 
-        case Some(n @ ActionNode(name, action, exitPorts)) =>
+        case Some(n @ ActionNode(name, action, getNextNode)) =>
           logger.info("Executing: "+n)
           val exitPort = action(context)
-          val nextNodeName = exitPorts.get(exitPort)
+          val nextNodeName = getNextNode(exitPort)
           logger.info("Got exit port: "+exitPort)
           logger.info("Next node: "+nextNodeName)
           val nextNode = 
@@ -42,7 +42,7 @@ class ParallelFlowRunner(val flow: Flow) extends FlowRunner with Logging {
             }
           execNode(nextNode, NodeResult(n, context, exitPort) :: path)
 
-        case Some(n @ SubFlowNode(name, nodes, exitPorts)) =>
+        case Some(n @ SubFlowNode(name, nodes, getNextNode)) =>
           logger.info("Executing: "+n)
           val subFlow = new Flow(name, nodes)
           val subFlowRunner = new ParallelFlowRunner(subFlow)
@@ -51,7 +51,7 @@ class ParallelFlowRunner(val flow: Flow) extends FlowRunner with Logging {
 
           val exitPort = path.last.exitPort
           logger.info("Got exit port: "+exitPort)
-          val nextNodeName = exitPorts.get(exitPort)
+          val nextNodeName = getNextNode(exitPort)
           logger.info("Next node: "+nextNodeName)
           val nextNode = 
             nextNodeName match {

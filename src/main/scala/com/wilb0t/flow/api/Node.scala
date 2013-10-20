@@ -25,7 +25,7 @@ abstract class Node {
 case class ActionNode(
   val name: String, 
   val action: Action, 
-  val exitPorts: Map[ExitPort, String]) extends Node {
+  val nextNode: NextNode) extends Node {
 }
 
 case class EndNode(
@@ -36,7 +36,7 @@ case class EndNode(
 case class SubFlowNode(
   val name: String, 
   val nodes: List[Node],
-  val exitPorts: Map[ExitPort, String]) extends Node {
+  val nextNode: NextNode) extends Node {
 
   val nodeMap: Map[String, Node] = 
     nodes.foldLeft(Map[String, Node]())( (m, n) => m + (n.name -> n))

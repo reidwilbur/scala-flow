@@ -38,26 +38,25 @@ class SerialFlowTest extends FunSuite with Logging {
 
     val flow = 
       new Flow("TestFlow", List[Node](
-            ActionNode("HeadNode", passAction, Map[ExitPort, String](
-             ( PassExit() -> "CompFlow" ),
-             ( FailExit() -> "EndNode" )
-            )),
+            ActionNode("HeadNode", passAction, {
+              case PassExit() => Some("CompFlow")
+              case _ => Some("EndNode")
+            }),
             SubFlowNode("CompFlow", List[Node](
                 EndNode("CompFlowEnd", passAction)
-              ), 
-              Map[ExitPort, String](
-               ( PassExit() -> "MidNode" ),
-               ( FailExit() -> "EndNode" )
-            )),
-            ActionNode("MidNode", failAction, Map[ExitPort, String](
-             ( PassExit() -> "SubFlow" ),
-             ( FailExit() -> "SubFlow" )
-            )),
+              ), {
+                case PassExit() => Some("MidNode")
+                case _ => Some("EndNode")
+            }),
+            ActionNode("MidNode", failAction, {
+              case PassExit() => Some("SubFlow")
+              case FailExit() => Some("SubFlow")
+              case _ => Some("EndNode")
+            }),
             ParSubFlowNode("SubFlow", List[Node](
-                ActionNode("SubFlowHead", passAction, Map[ExitPort, String](
-                 ( PassExit() -> "SubFlowEndNode" ),
-                 ( FailExit() -> "SubFlowEndNode" )
-                )),
+                ActionNode("SubFlowHead", passAction, {
+                  case _ => Some("SubFlowEndNode")
+                }),
                 EndNode("SubFlowEndNode", failAction)
                 ),
                 "EndNode"
