@@ -7,63 +7,39 @@ import com.weiglewilczek.slf4s.Logging
 
 class SerialFlowTest extends FunSuite with Logging {
 
-  case class PassExit() extends ExitPort {
-    val description = "Node Passed"
-  }
-  
-  case class FailExit() extends ExitPort {
-    val description = "Node Failed"
-  }
-  
-  class PassAction extends Action with Logging {
-    override def apply(context: FlowContext): ExitPort = {
-      logger.info("Emitting PassExit")
-  
-      PassExit()
-    }
-  }
-
-  class FailAction extends Action with Logging {
-    override def apply(context: FlowContext): ExitPort = {
-      logger.info("Emitting FailExit")
-  
-      FailExit()
-    }
-  }
-
   val passAction = new PassAction()
   val failAction = new FailAction()
 
   test("simple flow") {
 
     val flow = 
-      new Flow("TestFlow", List[Node](
-            ActionNode("HeadNode", passAction, {
-              case PassExit() => Some("CompFlow")
-              case _ => Some("EndNode")
+      Flow("TestFlow", List[Node](
+        ActionNode("HeadNode", passAction, {
+          case PassExit() => Some("CompFlow")
+          case _ => Some("EndNode")
+        }),
+        SubFlowNode("CompFlow", List[Node](
+            EndNode("CompFlowEnd", passAction)
+          ), {
+            case PassExit() => Some("MidNode")
+            case _ => Some("EndNode")
+        }),
+        ActionNode("MidNode", failAction, {
+          case PassExit() => Some("SubFlow")
+          case FailExit() => Some("SubFlow")
+          case _ => Some("EndNode")
+        }),
+        ParSubFlowNode("SubFlow", List[Node](
+            ActionNode("SubFlowHead", passAction, {
+              case _ => Some("SubFlowEndNode")
             }),
-            SubFlowNode("CompFlow", List[Node](
-                EndNode("CompFlowEnd", passAction)
-              ), {
-                case PassExit() => Some("MidNode")
-                case _ => Some("EndNode")
-            }),
-            ActionNode("MidNode", failAction, {
-              case PassExit() => Some("SubFlow")
-              case FailExit() => Some("SubFlow")
-              case _ => Some("EndNode")
-            }),
-            ParSubFlowNode("SubFlow", List[Node](
-                ActionNode("SubFlowHead", passAction, {
-                  case _ => Some("SubFlowEndNode")
-                }),
-                EndNode("SubFlowEndNode", failAction)
-                ),
-                "EndNode"
+            EndNode("SubFlowEndNode", failAction)
             ),
-            EndNode("EndNode", passAction)
-            )
-          )
+            "EndNode"
+        ),
+        EndNode("EndNode", passAction)
+        )
+      )
 
     val flowRunner = new SerialFlowRunner(flow)
     val results = flowRunner.execute(FlowContext("Main"), List(FlowContext("Ctx1"), FlowContext("Ctx2")))
