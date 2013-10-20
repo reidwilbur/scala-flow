@@ -41,8 +41,8 @@ class SerialFlowTest extends FunSuite with Logging {
         )
       )
 
-    val flowRunner = new SerialFlowRunner(flow)
-    val results = flowRunner.execute(FlowContext("Main"), List(FlowContext("Ctx1"), FlowContext("Ctx2")))
+    val flowRunner = new SerialFlowRunner()
+    val results = flowRunner.execute(flow, FlowContext("Main"), List(FlowContext("Ctx1"), FlowContext("Ctx2")))
 
     logger.info("Got Results: "+results)
 

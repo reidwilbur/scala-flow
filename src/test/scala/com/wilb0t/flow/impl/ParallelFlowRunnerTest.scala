@@ -41,8 +41,8 @@ class ParallelFlowTest extends FunSuite with Logging {
         )
       )
 
-    val flowRunner = new ParallelFlowRunner(flow)
-    val results = flowRunner.execute(FlowContext("Main"), List(FlowContext("Ctx1"), FlowContext("Ctx2")))
+    val flowRunner = new ParallelFlowRunner()
+    val results = flowRunner.execute(flow, FlowContext("Main"), List(FlowContext("Ctx1"), FlowContext("Ctx2")))
 
     logger.info("Got Results: "+results)
 

@@ -7,6 +7,6 @@ case class Flow(val name: String, val nodes: List[Node]) {
 }
 
 trait FlowRunner {
-  def execute(context: FlowContext, subContexts: List[FlowContext]): List[NodeResult]
+  def execute(flow: Flow, context: FlowContext, subContexts: List[FlowContext]): List[NodeResult]
 }
 

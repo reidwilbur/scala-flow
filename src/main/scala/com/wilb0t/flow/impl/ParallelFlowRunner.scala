@@ -4,9 +4,10 @@ import com.wilb0t.flow.api._
 import com.weiglewilczek.slf4s.Logging
 import scala.concurrent._
 
-class ParallelFlowRunner(val flow: Flow) extends FlowRunner with Logging {
+class ParallelFlowRunner extends FlowRunner with Logging {
 
   def execute(
+      flow: Flow,
       context: FlowContext, 
       subContexts: List[FlowContext]
     )
@@ -45,9 +46,9 @@ class ParallelFlowRunner(val flow: Flow) extends FlowRunner with Logging {
         case Some(n @ SubFlowNode(name, nodes, getNextNode)) =>
           logger.info("Executing: "+n)
           val subFlow = new Flow(name, nodes)
-          val subFlowRunner = new ParallelFlowRunner(subFlow)
+          val subFlowRunner = new ParallelFlowRunner()
 
-          val subFlowResults = subFlowRunner.execute(context, subContexts)
+          val subFlowResults = subFlowRunner.execute(subFlow, context, subContexts)
 
           val exitPort = path.last.exitPort
           logger.info("Got exit port: "+exitPort)
@@ -63,12 +64,12 @@ class ParallelFlowRunner(val flow: Flow) extends FlowRunner with Logging {
         case Some(n @ ParSubFlowNode(name, nodes, nextNodeName)) =>
           logger.info("Executing: "+n)
           val subFlow: Flow = new Flow(name, nodes)
-          val subFlowRunner = new ParallelFlowRunner(subFlow)
+          val subFlowRunner = new ParallelFlowRunner()
 
           import ExecutionContext.Implicits.global
           val futures: List[Future[List[NodeResult]]] = 
             for(context <- subContexts) 
-              yield future { subFlowRunner.execute(context, subContexts) }
+              yield future { subFlowRunner.execute(subFlow, context, subContexts) }
 
           import scala.concurrent.duration.Duration
           val subFlowResults = for(f <- futures; r <- Await.result(f, Duration.Inf)) yield r

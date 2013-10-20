@@ -3,9 +3,10 @@ package com.wilb0t.flow.impl
 import com.wilb0t.flow.api._
 import com.weiglewilczek.slf4s.Logging
 
-class SerialFlowRunner(val flow: Flow) extends FlowRunner with Logging {
+class SerialFlowRunner extends FlowRunner with Logging {
 
   def execute(
+      flow: Flow,
       context: FlowContext, 
       subContexts: List[FlowContext]
     )
@@ -44,9 +45,9 @@ class SerialFlowRunner(val flow: Flow) extends FlowRunner with Logging {
         case Some(n @ SubFlowNode(name, nodes, getNextNode)) =>
           logger.info("Executing: "+n)
           val subFlow = new Flow(name, nodes)
-          val subFlowRunner = new SerialFlowRunner(subFlow)
+          val subFlowRunner = new SerialFlowRunner()
 
-          val subFlowResults = subFlowRunner.execute(context, subContexts)
+          val subFlowResults = subFlowRunner.execute(subFlow, context, subContexts)
 
           val exitPort = path.last.exitPort
           logger.info("Got exit port: "+exitPort)
@@ -62,10 +63,10 @@ class SerialFlowRunner(val flow: Flow) extends FlowRunner with Logging {
         case Some(n @ ParSubFlowNode(name, nodes, nextNodeName)) =>
           logger.info("Executing: "+n)
           val subFlow: Flow = new Flow(name, nodes)
-          val subFlowRunner = new SerialFlowRunner(subFlow)
+          val subFlowRunner = new SerialFlowRunner()
 
           val subFlowResults = 
-            subContexts.flatMap{ subFlowRunner.execute(_, subContexts) }
+            subContexts.flatMap{ subFlowRunner.execute(subFlow, _, subContexts) }
          
           val nextNode = flow.nodeMap.get(nextNodeName)
           execNode(nextNode, NodeResult(n, context, ParSubFlowExit()) :: subFlowResults.reverse ::: path)
