@@ -10,3 +10,6 @@ trait FlowRunner {
   def execute(flow: Flow, context: FlowContext, subContexts: List[FlowContext]): List[NodeResult]
 }
 
+trait FlowLoader {
+  def load(flowString: String): Flow
+}
