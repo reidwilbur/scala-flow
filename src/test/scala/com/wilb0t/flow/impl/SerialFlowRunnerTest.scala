@@ -5,6 +5,10 @@ import com.wilb0t.flow.api._
 import org.scalatest.FunSuite
 import com.weiglewilczek.slf4s.Logging
 
+import org.scalatest.junit.JUnitRunner
+import org.junit.runner.RunWith
+
+@RunWith(classOf[JUnitRunner])
 class SerialFlowTest extends FunSuite with Logging {
 
   val passAction = new PassAction()

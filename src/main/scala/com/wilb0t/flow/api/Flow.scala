@@ -12,4 +12,5 @@ trait FlowRunner {
 
 trait FlowLoader {
   def load(flowString: String): Flow
+  def load(flowFile: java.io.File): Flow
 }

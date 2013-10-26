@@ -1,0 +1,20 @@
+[ Flow : testFlow
+  [ ActionNode : headNode
+    com.wilb0t.flow.impl.PassAction
+    [ com.wilb0t.flow.impl.PassExit subflowNode ]
+    [ com.wilb0t.flow.impl.FailExit endNode ]
+  ]
+  [ SubFlowNode : subflowNode
+    SimpleSubFlow.sf
+    [ com.wilb0t.flow.impl.PassExit midNode ]
+    [ com.wilb0t.flow.impl.FailExit midNode ]
+  ]
+  [ ActionNode : midNode
+    com.wilb0t.flow.impl.FailAction
+    [ com.wilb0t.flow.impl.PassExit endNode ]
+    [ com.wilb0t.flow.impl.FailExit endNode ]
+  ]
+  [ EndNode : endNode
+    com.wilb0t.flow.impl.PassAction 
+  ]
+]
