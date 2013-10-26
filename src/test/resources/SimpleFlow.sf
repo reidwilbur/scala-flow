@@ -11,8 +11,12 @@
   ]
   [ ActionNode : midNode
     com.wilb0t.flow.impl.FailAction
-    [ com.wilb0t.flow.impl.PassExit endNode ]
-    [ com.wilb0t.flow.impl.FailExit endNode ]
+    [ com.wilb0t.flow.impl.PassExit parSubflowNode ]
+    [ com.wilb0t.flow.impl.FailExit parSubflowNode ]
+  ]
+  [ ParSubFlowNode : parSubflowNode
+    SimpleParSubFlow.sf
+    endNode
   ]
   [ EndNode : endNode
     com.wilb0t.flow.impl.PassAction 

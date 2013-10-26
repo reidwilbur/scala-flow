@@ -37,7 +37,7 @@ class LoaderTest extends FunSuite with Logging {
     logger.info("got flow: "+flow)
   }
 
-  test("load from file with subflow ref") {
+  test("load from file with subflow refs") {
     //TODO: for some reason, using "/" doesn't give me the right path...
     val flowDir = new java.io.File(getClass.getResource("/SimpleFlow.sf").toURI).getParentFile
     val loader = new Loader(flowDir)
@@ -47,12 +47,22 @@ class LoaderTest extends FunSuite with Logging {
     logger.info("got flow: "+flow)
   }
 
-  test("load subflow ") {
+  test("load subflow") {
     //TODO: for some reason, using "/" doesn't give me the right path...
     val flowDir = new java.io.File(getClass.getResource("/SimpleFlow.sf").toURI).getParentFile
     val loader = new Loader(flowDir)
 
     val flow = loader.load(new java.io.File(getClass.getResource("/SimpleSubFlow.sf").toURI))
+
+    logger.info("got flow: "+flow)
+  }
+
+  test("load par subflow") {
+    //TODO: for some reason, using "/" doesn't give me the right path...
+    val flowDir = new java.io.File(getClass.getResource("/SimpleFlow.sf").toURI).getParentFile
+    val loader = new Loader(flowDir)
+
+    val flow = loader.load(new java.io.File(getClass.getResource("/SimpleParSubFlow.sf").toURI))
 
     logger.info("got flow: "+flow)
   }

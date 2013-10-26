@@ -38,29 +38,75 @@ class FlowParser(val flowDir: java.io.File) extends JavaTokenParsers with Loggin
   def subflowFileName: Parser[String] = """.+\.sf""".r
 
   def subflowNode: Parser[SubFlowNode] =
-    "["~>"SubFlowNode"~>":"~> nodeName~subflowFileName~nodeExit~rep(nodeExit) <~"]" ^^
-    { 
-      case name~filename~exit~restexits =>
+    "["~>"SubFlowNode"~>":"~> nodeName~subflowFileName~nodeExit~rep(nodeExit) <~"]" >>
+    { case name~filename~exit~restexits =>
         val file = new java.io.File(flowDir, filename)
         logger.info("Using subflow file "+file.toString)
+
         val rdr = new java.io.FileReader(file)
+
         try {
+          val exitMap = Map() ++ (exit :: restexits)
           val subflowParser = new FlowParser(flowDir)
           val parseResult = subflowParser.parseAll(subflowParser.flow, rdr)
-          val flow = parseResult.get
-          val exitMap = Map() ++ (exit :: restexits)
-          SubFlowNode(name, flow.nodes, { exitMap.get(_) })
+          logger.info(parseResult.toString)
+
+          new Parser[SubFlowNode]{ 
+            override def apply(in: Input): ParseResult[SubFlowNode] = {
+              parseResult.successful match {
+                case true =>
+                  val flow = parseResult.get
+                  val subflow = SubFlowNode(name, flow.nodes, { exitMap.get(_) })
+                  Success(subflow, in)
+                case false =>
+                  Failure("Failed to parse "+filename, in)
+              }
+            }
+          }
         }
         finally {
           rdr.close
         }
     }
 
+  def parSubflowNode: Parser[ParSubFlowNode] = 
+    "["~>"ParSubFlowNode"~>":"~> nodeName~subflowFileName~nextNode <~"]" >>
+    { case name~filename~next =>
+        val file = new java.io.File(flowDir, filename)
+        logger.info("Using subflow file "+file.toString)
+
+        val rdr = new java.io.FileReader(file)
+
+        try {
+          val subflowParser = new FlowParser(flowDir)
+          val parseResult = subflowParser.parseAll(subflowParser.flow, rdr)
+          logger.info(parseResult.toString)
+
+          new Parser[ParSubFlowNode]{ 
+            override def apply(in: Input): ParseResult[ParSubFlowNode] = {
+              parseResult.successful match {
+                case true =>
+                  val flow = parseResult.get
+                  val subflow = ParSubFlowNode(name, flow.nodes, next)
+                  Success(subflow, in)
+                case false =>
+                  Failure("Failed to parse "+filename, in)
+              }
+            }
+          }
+        }
+        finally {
+          rdr.close
+        }
+    }
+
+
   def flowName: Parser[String] = """\w+""".r
 
   def flow: Parser[Flow] = 
-    "["~>"Flow"~>":"~> flowName~rep(actionNode|subflowNode|endNode) <~"]" ^^
+    "["~>"Flow"~>":"~> flowName~rep(actionNode|subflowNode|parSubflowNode|endNode) <~"]" ^^
     { case name~nodes => Flow(name, nodes) }
+
 }
 
 class Loader(val flowDir: java.io.File) extends FlowLoader with Logging {
