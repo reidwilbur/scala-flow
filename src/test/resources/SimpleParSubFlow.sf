@@ -1,13 +1,13 @@
 [Flow : parsubflow1
   [ ActionNode : parsubFlowHead
     com.wilb0t.flow.impl.PassAction
-    [ com.wilb0t.flow.impl.PassExit parsubFlowMid ]
-    [ com.wilb0t.flow.impl.FailExit parsubFlowEnd ]
+    [ com.wilb0t.flow.impl.PassExit : parsubFlowMid ]
+    [ com.wilb0t.flow.impl.FailExit : parsubFlowEnd ]
   ]
   [ ActionNode : parsubFlowMid
     com.wilb0t.flow.impl.FailAction
-    [ com.wilb0t.flow.impl.PassExit parsubFlowEnd ]
-    [ com.wilb0t.flow.impl.FailExit parsubFlowEnd ]
+    [ com.wilb0t.flow.impl.PassExit : parsubFlowEnd ]
+    [ com.wilb0t.flow.impl.FailExit : parsubFlowEnd ]
   ]
   [ EndNode : parsubFlowEnd
     com.wilb0t.flow.impl.PassAction

@@ -1,13 +1,13 @@
 [ Flow : simpleSubFlow
   [ ActionNode : subFlowHead
     com.wilb0t.flow.impl.PassAction
-    [ com.wilb0t.flow.impl.PassExit subFlowMid ]
-    [ com.wilb0t.flow.impl.FailExit subFlowEnd ]
+    [ com.wilb0t.flow.impl.PassExit : subFlowMid ]
+    [ com.wilb0t.flow.impl.FailExit : subFlowEnd ]
   ]
   [ ActionNode : subFlowMid
     com.wilb0t.flow.impl.FailAction
-    [ com.wilb0t.flow.impl.PassExit subFlowEnd ]
-    [ com.wilb0t.flow.impl.FailExit subFlowEnd ]
+    [ com.wilb0t.flow.impl.PassExit : subFlowEnd ]
+    [ com.wilb0t.flow.impl.FailExit : subFlowEnd ]
   ]
   [ EndNode : subFlowEnd
     com.wilb0t.flow.impl.PassAction

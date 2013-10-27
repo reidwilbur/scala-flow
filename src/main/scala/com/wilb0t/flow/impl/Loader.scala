@@ -7,6 +7,26 @@ import com.weiglewilczek.slf4s.Logging
 
 class FlowParser(val flowDir: java.io.File) extends JavaTokenParsers with Logging {
 
+  def mkExitPortFn(exitPorts: List[(Option[ExitPort],String)]): ExitPort => Option[String] = {
+    val nodeExitMap: Map[ExitPort,String] = 
+      Map() ++ exitPorts
+                 .withFilter{ case (Some(ep), _) => true; case _ => false }
+                 .map{ case (Some(ep), nodeName) => (ep -> nodeName) }
+
+    //val default: Option[String] = 
+    //  exitPorts
+    //    .withFilter{ case (None, nodeName) => true; _ => false }
+    //    .map{ _._2 }
+    //    .lastOption
+
+    new Function1[ExitPort, Option[String]]{
+      override def apply(ep: ExitPort): Option[String] = {
+        //nodeExitMap.getOrElse(ep, default)
+        nodeExitMap.get(ep)
+      }
+    }
+  }
+
   def exitPort: Parser[ExitPort] = 
     """[a-zA-Z_][\w\.]*""".r ^^ 
     (ep => Class.forName(ep).newInstance.asInstanceOf[ExitPort] )
@@ -15,11 +35,11 @@ class FlowParser(val flowDir: java.io.File) extends JavaTokenParsers with Loggin
   def nextNode: Parser[String] = """\w+""".r
 
 
-  def nodeExit: Parser[(ExitPort,String)] = 
-    "["~> exitPort~nextNode <~"]" ^^
-    { case ep~name => (ep, name) }
+  def nodeExit: Parser[(Option[ExitPort],String)] = 
+    "["~> opt(exitPort)~":"~nextNode <~"]" ^^
+    { case ep~":"~name => (ep, name) }
 
-  
+
   def action: Parser[Action] = 
     """[a-zA-Z_][\w\.]*""".r ^^ 
     (a => Class.forName(a).newInstance.asInstanceOf[Action] )
@@ -32,8 +52,8 @@ class FlowParser(val flowDir: java.io.File) extends JavaTokenParsers with Loggin
     "["~>"ActionNode"~>":"~> nodeName~action~nodeExit~rep(nodeExit) <~"]" ^^
     { 
       case name~action~exit~restexits => 
-        val nodeExitMap = Map() ++ (exit :: restexits)
-        ActionNode(name, action, { nodeExitMap.get(_) })
+        //val nodeExitMap = Map() ++ (exit :: restexits).withFilter{ case (Some(ep), _) => true }
+        ActionNode(name, action, mkExitPortFn(exit :: restexits) )
     }
 
   
@@ -54,7 +74,6 @@ class FlowParser(val flowDir: java.io.File) extends JavaTokenParsers with Loggin
         val rdr = new java.io.FileReader(file)
 
         try {
-          val exitMap = Map() ++ (exit :: restexits)
           //here we are recursively creating a flow parser
           //in the transformer for the subflow ref parser
           //
@@ -74,7 +93,7 @@ class FlowParser(val flowDir: java.io.File) extends JavaTokenParsers with Loggin
                 case true =>
                   //unpack the flow nodes and create the subflow object
                   val flow = parseResult.get
-                  val subflow = SubFlowNode(name, flow.nodes, { exitMap.get(_) })
+                  val subflow = SubFlowNode(name, flow.nodes, mkExitPortFn(exit :: restexits) )
                   Success(subflow, in)
                 case false =>
                   Failure("Failed to parse "+filename, in)

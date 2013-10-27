@@ -18,13 +18,15 @@ class LoaderTest extends FunSuite with Logging {
 [ Flow : Test_Flow
   [ ActionNode : headNode
     com.wilb0t.flow.impl.PassAction
-    [ com.wilb0t.flow.impl.PassExit midNode ]
-    [ com.wilb0t.flow.impl.FailExit endNode ]
+    [ com.wilb0t.flow.impl.PassExit : midNode ]
+    [ com.wilb0t.flow.impl.FailExit : endNode ]
+    [ : endNode ]
   ]
   [ ActionNode : midNode
     com.wilb0t.flow.impl.FailAction
-    [ com.wilb0t.flow.impl.PassExit endNode ]
-    [ com.wilb0t.flow.impl.FailExit endNode ]
+    [ com.wilb0t.flow.impl.PassExit : endNode ]
+    [ com.wilb0t.flow.impl.FailExit : endNode ]
+    [ : endNode ]
   ]
   [ EndNode : endNode
     com.wilb0t.flow.impl.PassAction 
@@ -42,9 +44,12 @@ class LoaderTest extends FunSuite with Logging {
     val flowDir = new java.io.File(getClass.getResource("/SimpleFlow.sf").toURI).getParentFile
     val loader = new Loader(flowDir)
 
-    val flow = loader.load(new java.io.File(getClass.getResource("/SimpleFlow.sf").toURI))
+    val loadResult = loader.load(new java.io.File(getClass.getResource("/SimpleFlow.sf").toURI))
 
-    logger.info("got flow: "+flow)
+    loadResult match {
+      case Left(flow) => assert(true, flow.toString)
+      case Right(msg) => assert(false, msg)
+    }
   }
 
   test("load subflow") {
@@ -52,9 +57,12 @@ class LoaderTest extends FunSuite with Logging {
     val flowDir = new java.io.File(getClass.getResource("/SimpleFlow.sf").toURI).getParentFile
     val loader = new Loader(flowDir)
 
-    val flow = loader.load(new java.io.File(getClass.getResource("/SimpleSubFlow.sf").toURI))
+    val loadResult = loader.load(new java.io.File(getClass.getResource("/SimpleSubFlow.sf").toURI))
 
-    logger.info("got flow: "+flow)
+    loadResult match {
+      case Left(flow) => assert(true, flow.toString)
+      case Right(msg) => assert(false, msg)
+    }
   }
 
   test("load par subflow") {
@@ -62,9 +70,12 @@ class LoaderTest extends FunSuite with Logging {
     val flowDir = new java.io.File(getClass.getResource("/SimpleFlow.sf").toURI).getParentFile
     val loader = new Loader(flowDir)
 
-    val flow = loader.load(new java.io.File(getClass.getResource("/SimpleParSubFlow.sf").toURI))
+    val loadResult = loader.load(new java.io.File(getClass.getResource("/SimpleParSubFlow.sf").toURI))
 
-    logger.info("got flow: "+flow)
+    loadResult match {
+      case Left(flow) => assert(true, flow.toString)
+      case Right(msg) => assert(false, msg)
+    }
   }
 }
 
