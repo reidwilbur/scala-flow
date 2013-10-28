@@ -1,22 +1,5 @@
 package com.wilb0t.flow.api
 
-abstract class ExitPort {
-  def description: String
-  override def toString: String = {
-    this.getClass().getSimpleName()+":"+description
-  }
-}
-
-case class ParSubFlowExit() extends ExitPort {
-  val description = "Parallel subflow exit"
-}
-
-case class FlowContext(val name: String) {
-  override def toString: String = "FlowContext:"+name
-}
-
-case class NodeResult(val node: Node, val context: FlowContext, val exitPort: ExitPort)
-
 abstract class Node {
   def name: String
   override def toString: String = this.getClass().getSimpleName()+":"+name
@@ -51,4 +34,6 @@ case class ParSubFlowNode(
     nodes.foldLeft(Map[String, Node]())( (m, n) => m + (n.name -> n))
 
 }
+
+case class NodeResult(val node: Node, val context: FlowContext, val exitPort: ExitPort)
 

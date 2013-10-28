@@ -4,6 +4,8 @@ import com.wilb0t.flow.api._
 import com.weiglewilczek.slf4s.Logging
 import scala.concurrent._
 
+import scala.annotation.tailrec
+
 class ParallelFlowRunner extends FlowRunner with Logging {
 
   def execute(
@@ -13,6 +15,7 @@ class ParallelFlowRunner extends FlowRunner with Logging {
     )
     : List[NodeResult] = {
 
+    @tailrec
     def execNode(
         node: Option[Node], 
         path: List[NodeResult]

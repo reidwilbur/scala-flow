@@ -1,5 +1,9 @@
 package com.wilb0t.flow.api
 
+case class FlowContext(val name: String) {
+  override def toString: String = "FlowContext:"+name
+}
+
 case class Flow(val name: String, val nodes: List[Node]) {
 
   val nodeMap: Map[String, Node] = 

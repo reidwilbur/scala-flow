@@ -3,6 +3,8 @@ package com.wilb0t.flow.impl
 import com.wilb0t.flow.api._
 import com.weiglewilczek.slf4s.Logging
 
+import scala.annotation.tailrec
+
 class SerialFlowRunner extends FlowRunner with Logging {
 
   def execute(
@@ -12,6 +14,7 @@ class SerialFlowRunner extends FlowRunner with Logging {
     )
     : List[NodeResult] = {
 
+    @tailrec
     def execNode(
         node: Option[Node], 
         path: List[NodeResult]
