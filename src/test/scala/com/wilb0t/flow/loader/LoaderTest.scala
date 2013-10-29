@@ -1,6 +1,11 @@
-package com.wilb0t.flow.impl
+package com.wilb0t.flow.loader
 
 import com.wilb0t.flow.api._
+
+import com.wilb0t.flow.impl.PassAction
+import com.wilb0t.flow.impl.PassExit
+import com.wilb0t.flow.impl.FailAction
+import com.wilb0t.flow.impl.FailExit
 
 import org.scalatest.FunSuite
 import com.weiglewilczek.slf4s.Logging

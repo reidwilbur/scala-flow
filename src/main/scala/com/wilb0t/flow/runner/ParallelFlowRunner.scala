@@ -1,4 +1,4 @@
-package com.wilb0t.flow.impl
+package com.wilb0t.flow.runner
 
 import com.wilb0t.flow.api._
 import com.weiglewilczek.slf4s.Logging

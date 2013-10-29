@@ -1,9 +1,14 @@
-package com.wilb0t.flow.impl
+package com.wilb0t.flow.loader
 
 import com.wilb0t.flow.api._
 
+import com.wilb0t.flow.parser._
+
 import com.weiglewilczek.slf4s.Logging
 
+/** 
+  * 
+  */
 class Loader(val flowDir: java.io.File) extends FlowLoader with Logging {
   override def load(flowString: String): Either[Flow, String] = {
     val parser = new FlowParser(flowDir)

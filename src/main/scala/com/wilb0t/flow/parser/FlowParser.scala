@@ -1,4 +1,4 @@
-package com.wilb0t.flow.impl
+package com.wilb0t.flow.parser
 
 import scala.util.parsing.combinator._
 import com.weiglewilczek.slf4s.Logging
