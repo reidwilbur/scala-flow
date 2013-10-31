@@ -6,8 +6,15 @@ import com.wilb0t.flow.parser._
 
 import com.weiglewilczek.slf4s.Logging
 
-/** 
-  * 
+/** This Loader implementation uses the [[com.wilb0t.flow.parser.FlowParser]]
+  * impl to instantiate [[com.wilb0t.flow.api.Flow]] objects from Strings
+  * or Files.
+  *
+  * If the resulting object of the Either is a Flow, it is suitable to be
+  * executed via a [[com.wilb0t.flow.api.FlowRunner]] implementation.
+  *
+  * Otherwise, the result of load is a String containing parsing error
+  * associated with the input.
   */
 class Loader(val flowDir: java.io.File) extends FlowLoader with Logging {
   override def load(flowString: String): Either[Flow, String] = {

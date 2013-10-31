@@ -6,6 +6,18 @@ import scala.concurrent._
 
 import scala.annotation.tailrec
 
+/** The ParallelFlowRunner implementation executes all 
+  * [[com.wilb0t.flow.api.ParSubFlowNode]] instances in parallel
+  * using a separate thread for each subContext.
+  *
+  * Action, End and SubFlow Nodes are executed in the calling 
+  * thread using the single context passed.
+  *
+  * [[com.wilb0t.flow.api.Flow]] execution continues until
+  * a None is encountered as the result of applying a 
+  * [[com.wilbot.flow.api.NextNode]] to an ExitPort resulting
+  * from executing an Action
+  */
 class ParallelFlowRunner extends FlowRunner with Logging {
 
   def execute(
@@ -15,6 +27,10 @@ class ParallelFlowRunner extends FlowRunner with Logging {
     )
     : List[NodeResult] = {
 
+    /** Recursively execute nodes until it gets a None
+      * Returns the list of [[com.wilb0t.flow.api.NodeResult]]s for 
+      * the executed Actions/Contexts.
+      */
     @tailrec
     def execNode(
         node: Option[Node], 
@@ -27,6 +43,7 @@ class ParallelFlowRunner extends FlowRunner with Logging {
           logger.info("Flow finished")
           path.reverse
 
+        //Executing an EndNode always results in ending execution of the current flow
         case Some(n @ EndNode(name, action)) =>
           logger.info("Executing: "+n)
           val exitPort = action(context)
@@ -46,6 +63,8 @@ class ParallelFlowRunner extends FlowRunner with Logging {
             }
           execNode(nextNode, NodeResult(n, context, exitPort) :: path)
 
+        //SubFlowNode execution creates a new instance of this runner
+        // and runs the subflow with the same context and subcontexts
         case Some(n @ SubFlowNode(name, nodes, getNextNode)) =>
           logger.info("Executing: "+n)
           val subFlow = new Flow(name, nodes)
@@ -64,6 +83,12 @@ class ParallelFlowRunner extends FlowRunner with Logging {
             }
           execNode(nextNode, NodeResult(n, context, exitPort) :: subFlowResults.reverse ::: path)
 
+        //ParSubFlowNodes executing creates a new instance of this runner
+        // and runs the subflow using futures setting the context
+        // to each subcontext.
+        // The original subcontext is forwarded to each par subflow
+        // so it should be able to execute sub sub par subflows
+        // That seems like a bad idea tho...
         case Some(n @ ParSubFlowNode(name, nodes, nextNodeName)) =>
           logger.info("Executing: "+n)
           val subFlow: Flow = new Flow(name, nodes)
